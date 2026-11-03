@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manos que hablan · Clasificador de señas con TensorFlow.js</title>
+    <script>
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem("senas_tema"); } catch (e) {}
+            if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            document.documentElement.dataset.theme = t;
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier"></script>
+</head>
+<body>
+<header class="top">
+    <button id="btnTheme" class="theme-btn" type="button">Modo noche</button>
+    <h1>Manos que hablan</h1>
+    <p>Enseña a tu navegador el alfabeto de la Lengua de Señas Mexicana y deja que arme palabras contigo. Todo corre en tu equipo, sin enviar video a ningún servidor.</p>
+</header>
+
+<main class="layout">
+    <section class="stage" aria-label="Cámara y reconocimiento">
+        <div class="cam">
+            <video id="webcam" autoplay playsinline muted width="227" height="227"></video>
+            <div class="roi" aria-hidden="true"></div>
+            <div class="badge" id="badge" aria-live="polite">
+                <span id="bigLetter">·</span>
+                <small id="bigConf">Esperando…</small>
+            </div>
+        </div>
+        <p id="status" class="status">Cargando modelo…</p>
+        <p class="hint">Coloca tu mano dentro del recuadro punteado, con buena luz y un fondo liso.</p>
+
+        <div class="word-box">
+            <label for="word">Palabra formada</label>
+            <div id="word" class="word" aria-live="polite"></div>
+            <div class="row">
+                <button id="btnSpace">Espacio</button>
+                <button id="btnBack">Borrar letra</button>
+                <button id="btnClear">Limpiar</button>
+                <button id="btnSpeak">Escuchar</button>
+                <button id="btnSaveWord" class="primary">Guardar palabra</button>
+            </div>
+            <p class="hint">La letra se agrega sola cuando mantienes la seña firme por un instante. Entre letras repetidas, baja la mano un momento.</p>
+        </div>
+    </section>
+
+    <section class="teach" aria-label="Entrenamiento">
+        <h2>Enseñar una seña</h2>
+        <div class="progress" aria-label="Progreso de entrenamiento"><div id="progressBar"></div></div>
+        <p class="hint" id="progressText">0 de 29 letras entrenadas</p>
+        <div class="row"><button id="btnGuide">Ver guía de señas (LSM)</button></div>
+        <p class="hint">1. Elige una letra. 2. Haz la seña frente a la cámara. 3. Mantén presionado “Capturar”. Con 20 a 30 ejemplos por letra el reconocimiento mejora mucho.</p>
+
+        <div id="grid" class="grid" role="listbox" aria-label="Letras"></div>
+        <p class="legend"><span class="sw sw-ready"></span> lista (10+ ejemplos) <span class="sw sw-mov"></span> lleva movimiento</p>
+        <p class="hint" id="moveHint"></p>
+
+        <div class="row">
+            <button id="btnCapture" class="primary big">Capturar ejemplos de <b id="selLabel">A</b></button>
+            <button id="btnResetClass">Borrar esta letra</button>
+        </div>
+
+        <h2>Conocimiento guardado</h2>
+        <p class="hint" id="saveInfo">Los ejemplos se guardan automáticamente en este navegador.</p>
+        <div class="row">
+            <button id="btnExport">Exportar modelo (.json)</button>
+            <button id="btnImport">Importar modelo</button>
+            <button id="btnWipe" class="danger">Borrar todo</button>
+            <input type="file" id="fileInput" accept=".json" hidden>
+        </div>
+
+        <h2>Palabras guardadas</h2>
+        <ul id="words" class="words"></ul>
+
+        <details class="mobilenet" id="mobi">
+            <summary>Ver predicción general de MobileNet</summary>
+            <div id="console"></div>
+        </details>
+    </section>
+</main>
+
+<dialog id="guide" class="guide">
+    <img src="img/lsm-alfabeto.jpeg" alt="Alfabeto de la Lengua de Señas Mexicana. Las flechas indican el movimiento de J, K, LL, Ñ, Q, RR, X y Z.">
+    <p class="hint">Fuente: Universidad Tecnológica de Tijuana (UTT), “Lengua de Señas Mexicana”.</p>
+    <button id="btnCloseGuide" class="primary">Cerrar</button>
+</dialog>
+
+<script src="js/script.js"></script>
+</body>
+</html>
